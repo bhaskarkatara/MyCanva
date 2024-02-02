@@ -10,8 +10,10 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.media.MediaScannerConnection
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         null // A variable for current color is picked from color pallet.
     //Todo 1: create a variable for the dialog
     var customProgressDialog: Dialog? = null
+
 
     val openGalleryLauncher:ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){result->
         if (result.resultCode == RESULT_OK && result.data != null){
@@ -118,6 +121,10 @@ class MainActivity : AppCompatActivity() {
                     saveBitmapFile(getBitmapFromView(flDrawingView))
                 }
             }
+        }
+         val shareImage : ImageButton = findViewById(R.id.ib_share)
+        shareImage.setOnClickListener {
+            shareImage(result)
         }
     }
 
@@ -273,8 +280,9 @@ class MainActivity : AppCompatActivity() {
 //    I've opened an OutputStream to write the bitmap to the content resolver.
 //    Please note that you should handle exceptions appropriately in a production environment.
 //    This code assumes that the storage permission has been granted, so you may want to check for it before attempting to save the image.
+     private var result = ""
     private suspend fun saveBitmapFile(mBitmap: Bitmap?): String {
-        var result = ""
+
         withContext(Dispatchers.IO) {
             if (mBitmap != null) {
                 try {
@@ -296,11 +304,13 @@ class MainActivity : AppCompatActivity() {
                         result = uri.toString()
                         runOnUiThread {
                             cancelProgressDialog()
+
                             Toast.makeText(
                                 this@MainActivity,
                                 "File saved successfully: $result",
                                 Toast.LENGTH_SHORT
                             ).show()
+
                         }
                     } else {
                         runOnUiThread {
@@ -319,6 +329,67 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return result
+    }
+
+
+    // TODO (Step 1 - Sharing the downloaded Image file)
+    // TODO (Step 1 - Sharing the downloaded Image file)
+    private fun shareImage(result:String){
+
+        /*MediaScannerConnection provides a way for applications to pass a
+        newly created or downloaded media file to the media scanner service.
+        The media scanner service will read metadata from the file and add
+        the file to the media content provider.
+        The MediaScannerConnectionClient provides an interface for the
+        media scanner service to return the Uri for a newly scanned file
+        to the client of the MediaScannerConnection class.*/
+
+        /*scanFile is used to scan the file when the connection is established with MediaScanner.*/
+        MediaScannerConnection.scanFile(
+            this@MainActivity, arrayOf(result), null
+        ) { path, uri ->
+            // This is used for sharing the image after it has being stored in the storage.
+            val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(
+                Intent.EXTRA_STREAM,
+                uri
+            ) // A content: URI holding a stream of data associated with the Intent, used to supply the data being sent.
+            shareIntent.type =
+                "image/png" // The MIME type of the data being handled by this intent.
+
+             val chooser =   Intent.createChooser(
+                    shareIntent,
+                    "Share"
+                )
+
+            if(shareIntent.resolveActivity(packageManager) != null){
+                startActivity(chooser)
+            }
+            else{
+                Toast.makeText(
+                    this@MainActivity,
+                    "No app found to handle the action",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+//            else {
+//                Log.e("ShareImage", "URI is null")
+//                Toast.makeText(
+//                    this@MainActivity,
+//                    "Failed to obtain URI for the image",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//            }
+
+//            Log.e(TAG, "shareImage: ", )
+        // Activity Action: Display an activity chooser,
+            // allowing the user to pick what they want to before proceeding.
+            // This can be used as an alternative to the standard activity picker
+            // that is displayed by the system when you try to start an activity with multiple possible matches,
+            // with these differences in behavior:
+        }
+        // END
     }
 
     /** Todo 2:create function to show the dialog
@@ -344,4 +415,5 @@ class MainActivity : AppCompatActivity() {
             customProgressDialog = null
         }
     }
+
 }

@@ -24,10 +24,10 @@
           android:id="@+id/iv_background"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          android:contentDescription="image"/>
+          android:contentDescription="image"
           android:scaleType="centerCrop"
-<!--          android:src="@drawable/image"-->
-<!--          />-->
+          tools:src="@drawable/image"
+          />
 
       <com.example.mycanva.DrawingView
           android:id="@+id/drawing_view"
@@ -184,6 +184,17 @@
           android:contentDescription="image"
           android:scaleType="fitXY"
           android:src="@drawable/ic_save" />
+
+      <ImageButton
+          android:id="@+id/ib_share"
+          android:layout_width="50dp"
+          android:layout_height="50dp"
+          android:layout_margin="5dp"
+          android:contentDescription="image"
+          android:scaleType="fitXY"
+          android:src="@drawable/ic_share" />
+
+
 
    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
